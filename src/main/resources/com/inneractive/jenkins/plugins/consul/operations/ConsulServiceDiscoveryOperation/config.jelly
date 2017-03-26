@@ -1,0 +1,24 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+    <f:entry title="Service lookup name" field="serviceName">
+        <f:textbox />
+    </f:entry>
+    <f:entry title="Add port?" field="addPort">
+        <f:checkbox checked="${it.isAddPort}"/>
+    </f:entry>
+    <f:entry title="Health status" field="healthStatus">
+        <select name="healthStatus">
+            <f:option value="Healthy" selected="${instance.healthStatus == 'Healthy'}" >Healthy</f:option>
+            <f:option value="Unhealthy" selected="${instance.healthStatus == 'Unhealthy'}" >Unhealthy</f:option>
+            <f:option value="All" selected="${instance.healthStatus == 'All'}" >All</f:option>
+        </select>
+    </f:entry>
+
+    <f:entry title="Service tag" field="serviceTag">
+        <f:textbox/>
+    </f:entry>
+    <f:entry title="Environment variable name" field="environmentVariableName">
+        <f:textbox/>
+    </f:entry>
+
+</j:jelly>

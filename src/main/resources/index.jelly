@@ -1,0 +1,4 @@
+<?jelly escape-by-default='true'?>
+<div>
+  Consul plugin for service discovery and K/V store usages
+</div>

@@ -23,7 +23,7 @@
 
   <name>Consul Plugin</name>
   <description>Consul service discovery and K/V plugin</description>
-  <url>https://wiki.jenkins-ci.org/display/JENKINS/Consul+Plugin</url>
+  <!-- <url>https://wiki.jenkins-ci.org/display/JENKINS/Consul+Plugin</url> -->
 
   <licenses>
     <license>
@@ -40,11 +40,17 @@
     </developer>
   </developers>
 
-  <scm>
+  <!-- <scm>
     <connection>scm:git:git://github.com/jenkinsci/${project.artifactId}-plugin.git</connection>
     <developerConnection>scm:git:git@github.com:jenkinsci/${project.artifactId}-plugin.git</developerConnection>
     <url>http://github.com/jenkinsci/${project.artifactId}-plugin</url>
-  </scm>
+  </scm> -->
+
+  <scm>
+    <connection>scm:git:ssh://github.com/liozN/jenkins_consul_plugin.git</connection>
+    <developerConnection>scm:git:ssh://github.com/liozN/jenkins_consul_plugin.git</developerConnection>
+    <url>https://github.com/liozN/jenkins_consul_plugin</url>
+</scm>
   
   <repositories>
     <repository>

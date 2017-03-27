@@ -47,9 +47,9 @@
   </scm> -->
 
   <scm>
-    <connection>scm:git:ssh://github.com/liozN/jenkins_consul_plugin.git</connection>
-    <developerConnection>scm:git:ssh://github.com/liozN/jenkins_consul_plugin.git</developerConnection>
-    <url>https://github.com/liozN/jenkins_consul_plugin</url>
+    <connection>scm:git:ssh://github.com/liozN/jenkins-consul-plugin.git</connection>
+    <developerConnection>scm:git:ssh://github.com/liozN/jenkins-consul-plugin.git</developerConnection>
+    <url>https://github.com/liozN/jenkins-consul-plugin</url>
 </scm>
   
   <repositories>

@@ -23,7 +23,7 @@
 
   <name>Consul Plugin</name>
   <description>Consul service discovery and K/V plugin</description>
-  <!-- <url>https://wiki.jenkins-ci.org/display/JENKINS/Consul+Plugin</url> -->
+  <url>https://wiki.jenkins-ci.org/display/JENKINS/Consul+Plugin</url>
 
   <licenses>
     <license>

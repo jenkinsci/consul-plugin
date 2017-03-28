@@ -2,10 +2,12 @@ package com.inneractive.jenkins.plugins.consul;
 
 import hudson.Extension;
 import hudson.model.Descriptor;
+import hudson.util.FormValidation;
 import jenkins.model.GlobalConfiguration;
 import jenkins.model.GlobalPluginConfiguration;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
 public class ConsulGlobalConfigurations extends GlobalPluginConfiguration {
@@ -64,6 +66,18 @@ public class ConsulGlobalConfigurations extends GlobalPluginConfiguration {
             save();
 
             return super.configure(req, json);
+        }
+
+        public FormValidation doCheckGlobalConsulMasters (@QueryParameter String value){
+            if (value.isEmpty())
+                return FormValidation.warning("Masters list is a mandatory field. You will have to configure it in every job.");
+            return FormValidation.ok();
+        }
+
+        public FormValidation doCheckGlobalConsulDatacenter(@QueryParameter String value){
+            if (value.isEmpty())
+                return FormValidation.warning("Datacenter is mandatory field, use dc1 if you never configured it in consul or configure it manually for every job.");
+            return FormValidation.ok();
         }
     }
 }

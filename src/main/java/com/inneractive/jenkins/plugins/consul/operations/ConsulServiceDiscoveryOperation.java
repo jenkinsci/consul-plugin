@@ -10,7 +10,10 @@ import hudson.Extension;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
+import hudson.util.FormValidation;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.QueryParameter;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -109,6 +112,12 @@ public class ConsulServiceDiscoveryOperation extends ConsulOperation{
         @Override
         public String getDisplayName() {
             return "Service discovery query";
+        }
+
+        public FormValidation doCheckServiceName (@QueryParameter String value) {
+            if (value.isEmpty())
+                return FormValidation.error("Service name is a mandatory field");
+            return FormValidation.ok();
         }
     }
 }

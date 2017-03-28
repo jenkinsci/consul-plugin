@@ -15,23 +15,17 @@
   </f:entry>
 
   <f:section title="Override consul settings" name="overrideGlobalConsulConfigurations">
-    <f:optionalBlock name="consulMastersJson" field="consulMastersJson" title="Masters list" checked="${instance.consulMasters != null}">
-      <f:entry title="Consul masters list" field="consulMasters">
-        <f:textbox />
-      </f:entry>
-    </f:optionalBlock>
+    <f:entry title="Consul masters list" field="consulMasters">
+      <f:textbox />
+    </f:entry>
 
-    <f:optionalBlock name="consulDatacenterJson" field="consulDatacenterJson" title="Datacenter" checked="${instance.consulDatacenter != null}">
-      <f:entry title="Datacenter" field="consulDatacenter">
-        <f:textbox/>
-      </f:entry>
-    </f:optionalBlock>
+    <f:entry title="Datacenter" field="consulDatacenter">
+      <f:textbox/>
+    </f:entry>
 
-    <f:optionalBlock name="consulTokenJson" field="consulTokenJson" title="Token" checked="${instance.consulToken != null}">
-      <f:entry title="Token" field="consulToken">
-        <f:textbox />
-      </f:entry>
-    </f:optionalBlock>
+    <f:entry title="Token" field="consulToken">
+      <f:textbox />
+    </f:entry>
   </f:section>
 
 </j:jelly>

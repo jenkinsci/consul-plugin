@@ -25,5 +25,8 @@ public class ConsulInstaller extends DownloadFromUrlInstaller {
             return toolType.isInstance(ConsulInstallation.class);
         }
 
+
+
+
     }
 }

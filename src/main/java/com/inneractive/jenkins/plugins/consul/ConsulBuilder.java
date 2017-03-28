@@ -37,6 +37,7 @@ public class ConsulBuilder extends Builder {
     public ConsulBuilder(String installationName, List<ConsulOperation> operationList) {
         this.installationName = installationName;
 
+
         if (operationList != null && !operationList.isEmpty()) {
             this.operationList = operationList;
         }
@@ -70,15 +71,15 @@ public class ConsulBuilder extends Builder {
     }
 
     private String getMasters() {
-        return (consulMasters != null) ? consulMasters : globalConsulConfigurationsDescriptor.getGlobalConsulMasters();
+        return (!consulMasters.isEmpty()) ? consulMasters : globalConsulConfigurationsDescriptor.getGlobalConsulMasters();
     }
 
     private String getDatacenter() {
-        return (consulDatacenter != null) ? consulDatacenter : globalConsulConfigurationsDescriptor.getGlobalConsulDatacenter();
+        return (!consulDatacenter.isEmpty()) ? consulDatacenter : globalConsulConfigurationsDescriptor.getGlobalConsulDatacenter();
     }
 
     private String getToken() {
-        return (consulToken != null) ? consulToken : globalConsulConfigurationsDescriptor.getGlobalConsulToken();
+        return (!consulToken.isEmpty()) ? consulToken : globalConsulConfigurationsDescriptor.getGlobalConsulToken();
     }
 
     public List<ConsulOperation> getOperationList() {
@@ -92,16 +93,9 @@ public class ConsulBuilder extends Builder {
 
     @DataBoundSetter
     public void setOverrideGlobalConsulConfigurations(JSONObject overrideGlobalConsulConfigurations) {
-        JSONObject consulMastersJson = overrideGlobalConsulConfigurations.getJSONObject("consulMastersJson");
-        JSONObject consulDatacenterJson = overrideGlobalConsulConfigurations.getJSONObject("consulDatacenterJson");
-        JSONObject consulTokenJson = overrideGlobalConsulConfigurations.getJSONObject("consulTokenJson");
-
-        if(consulMastersJson.size() > 0)
-            consulMasters = consulMastersJson.getString("consulMasters").replaceAll(" ", "");
-        if(consulDatacenterJson.size() > 0)
-            consulDatacenter = consulDatacenterJson.getString("consulDatacenter");
-        if(consulTokenJson.size() > 0)
-            consulToken = consulTokenJson.getString("consulToken");
+        consulMasters = overrideGlobalConsulConfigurations.getString("consulMasters").replaceAll(" ", "");
+        consulDatacenter = overrideGlobalConsulConfigurations.getString("consulDatacenter");
+        consulToken = overrideGlobalConsulConfigurations.getString("consulToken");
         this.overrideGlobalConsulConfigurations = overrideGlobalConsulConfigurations;
     }
 
@@ -146,14 +140,9 @@ public class ConsulBuilder extends Builder {
         Node node = Computer.currentComputer().getNode();
         if (node != null) {
             ConsulInstallation ci = getInstallation(build, listener).forNode(node, listener);
-            if (consulInstallation != null){
-                consulInstallation = ci.forEnvironment(build.getEnvironment(listener));
-            } else {
-                LOGGER.warning("Couldn't get consul installation");
-                consulInstallation = null;
-            }
+            consulInstallation = ci.forEnvironment(build.getEnvironment(listener));
         } else {
-            LOGGER.warning("Couldn't get node");
+            LOGGER.warning("Couldn't get jenkins node");
             consulInstallation = null;
         }
     }
@@ -164,7 +153,7 @@ public class ConsulBuilder extends Builder {
         if (consulHomePath != null && !consulHomePath.isEmpty()){
             consulAgentProcess = launcher.launch().cmds(new CommandBuilder(consulInstallation, launcher).agent().withDatacenter(getDatacenter()).join(getMasters()).withToken(getToken()).withDatadir(consulHomePath).withAdvertise("127.0.0.1").getCmds()).envs(build.getEnvironment(listener)).stderr(listener.getLogger()).start();
         } else {
-            LOGGER.warning("Couldn't get consul home directory");
+            LOGGER.severe("Couldn't get consul home directory");
             consulAgentProcess = null;
         }
         listener.getLogger().println("Waiting for agent to join...");
@@ -191,6 +180,7 @@ public class ConsulBuilder extends Builder {
 
     @Extension
     public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
+        ConsulGlobalConfigurations.DescriptorImpl globalConsulConfigurationsDescriptor;
 
         public DescriptorImpl() {
             super(ConsulBuilder.class);
@@ -218,12 +208,6 @@ public class ConsulBuilder extends Builder {
             return null;
         }
 
-        public FormValidation doCheckName(@QueryParameter String value) {
-            if (value.length() == 0)
-                return FormValidation.error("Please set service serviceName");
-            return FormValidation.ok();
-        }
-
         public boolean isApplicable(Class<? extends AbstractProject> aClass) {
             return true;
         }
@@ -235,6 +219,28 @@ public class ConsulBuilder extends Builder {
 
         public List<ConsulOperationDescriptor> getOperations() {
             return ConsulOperationDescriptor.all();
+        }
+
+        public FormValidation doCheckConsulMasters(@QueryParameter String value){
+            Jenkins jenkinsInstance = Jenkins.getInstance();
+            if (jenkinsInstance != null)
+                globalConsulConfigurationsDescriptor = ((ConsulGlobalConfigurations.DescriptorImpl)jenkinsInstance.getDescriptor(ConsulGlobalConfigurations.class));
+            else
+                LOGGER.warning("Couldn't get jenkins instance");
+            if (value.isEmpty() && globalConsulConfigurationsDescriptor.getGlobalConsulMasters().isEmpty())
+                return FormValidation.error("Masters list is a mandatory field here if not configured in global jenkins configurations as well.");
+            return FormValidation.ok();
+        }
+
+        public FormValidation doCheckConsulDatacenter(@QueryParameter String value){
+            Jenkins jenkinsInstance = Jenkins.getInstance();
+            if (jenkinsInstance != null)
+                globalConsulConfigurationsDescriptor = ((ConsulGlobalConfigurations.DescriptorImpl)jenkinsInstance.getDescriptor(ConsulGlobalConfigurations.class));
+            else
+                LOGGER.warning("Couldn't get jenkins instance");
+            if (value.isEmpty() && globalConsulConfigurationsDescriptor.getGlobalConsulDatacenter().isEmpty())
+                return FormValidation.error("Datacenter is a mandatory field here if not configured in global jenkins configurations as well.");
+            return FormValidation.ok();
         }
     }
 }

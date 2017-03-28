@@ -10,7 +10,9 @@ import hudson.Extension;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
+import hudson.util.FormValidation;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.QueryParameter;
 
 public class ConsulGetKV extends ConsulOperation {
     private final String valuePath;
@@ -43,7 +45,19 @@ public class ConsulGetKV extends ConsulOperation {
     public static class DescriptorImpl extends ConsulOperationDescriptor {
         @Override
         public String getDisplayName() {
-            return "Retriever value from K/V store";
+            return "Retrieve value from K/V store";
+        }
+
+        public FormValidation doCheckValuePath(@QueryParameter String value) {
+            if (value.isEmpty())
+                return FormValidation.error("Path is a mandatory field");
+            return FormValidation.ok();
+        }
+
+        public FormValidation doCheckEnvironmentVariableName(@QueryParameter String value) {
+            if (value.isEmpty())
+                return FormValidation.error("Environment variable name is a mandatory field");
+            return FormValidation.ok();
         }
     }
 }

@@ -150,10 +150,10 @@ public class ConsulBuilder extends Builder {
     private boolean joinConsul(AbstractBuild build, final Launcher launcher, final BuildListener listener) throws IOException, InterruptedException {
         boolean success = false;
         String consulHomePath = consulInstallation.getHome();
-        if (consulHomePath != null && !consulHomePath.isEmpty()){
+        if (!consulHomePath.isEmpty()){
             consulAgentProcess = launcher.launch().cmds(new CommandBuilder(consulInstallation, launcher).agent().withDatacenter(getDatacenter()).join(getMasters()).withToken(getToken()).withDatadir(consulHomePath).withAdvertise("127.0.0.1").getCmds()).envs(build.getEnvironment(listener)).stderr(listener.getLogger()).start();
         } else {
-            LOGGER.severe("Couldn't get consul home directory");
+            listener.getLogger().println("Couldn't get consul home directory");
             consulAgentProcess = null;
         }
         listener.getLogger().println("Waiting for agent to join...");

@@ -40,18 +40,12 @@
     </developer>
   </developers>
 
-  <!-- <scm>
+  <scm>
     <connection>scm:git:git://github.com/jenkinsci/${project.artifactId}-plugin.git</connection>
     <developerConnection>scm:git:git@github.com:jenkinsci/${project.artifactId}-plugin.git</developerConnection>
     <url>http://github.com/jenkinsci/${project.artifactId}-plugin</url>
-  </scm> -->
+  </scm>
 
-  <scm>
-    <connection>scm:git:ssh://github.com/liozN/jenkins-consul-plugin.git</connection>
-    <developerConnection>scm:git:ssh://github.com/liozN/jenkins-consul-plugin.git</developerConnection>
-    <url>https://github.com/liozN/jenkins-consul-plugin</url>
-</scm>
-  
   <repositories>
     <repository>
       <id>repo.jenkins-ci.org</id>

@@ -38,6 +38,33 @@ public class ConsulGlobalConfigurations extends GlobalPluginConfiguration {
             return globalConsulToken;
         }
 
+        private boolean checkNullAndEmpty(String str){
+            if (str != null && !str.isEmpty())
+                return true;
+            else
+                return false;
+        }
+
+        private String returnNonNullFirstString(String str1, String str2){
+            if (checkNullAndEmpty(str1))
+                return str1;
+            if (checkNullAndEmpty(str2))
+                return str2;
+            return "";
+        }
+
+        public String getConsulMasters(String consulMasters) {
+            return returnNonNullFirstString(consulMasters, globalConsulMasters);
+        }
+
+        public String getConsulDatacenter(String consulDatacenter) {
+            return returnNonNullFirstString(consulDatacenter, globalConsulDatacenter);
+        }
+
+        public String getConsulToken(String consulToken) {
+            return returnNonNullFirstString(consulToken, globalConsulToken);
+        }
+
         public void setGlobalConsulMasters(String globalConsulMasters) {
             this.globalConsulMasters = globalConsulMasters;
         }

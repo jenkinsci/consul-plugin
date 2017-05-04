@@ -1,0 +1,31 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+  <f:entry title="Consul Installation">
+    <select class="setting-input" name="installationName">
+      <j:forEach var="inst" items="${descriptor.installations}">
+        <f:option selected="${inst.name==instance.installationName}">${inst.name}</f:option>
+      </j:forEach>
+    </select>
+  </f:entry>
+
+  <f:entry title="Consul operations" field="operationList">
+    <f:hetero-list name="operationList" hasHeader="true"
+                   descriptors="${descriptor.getOperations()}" items="${instance.operationList}"
+                    />
+  </f:entry>
+
+  <!--<f:section title="Override consul settings" name="overrideGlobalConsulConfigurations">-->
+    <!--<f:entry title="Consul masters list" field="consulMasters">-->
+      <!--<f:textbox />-->
+    <!--</f:entry>-->
+
+    <!--<f:entry title="Datacenter" field="consulDatacenter">-->
+      <!--<f:textbox/>-->
+    <!--</f:entry>-->
+
+    <!--<f:entry title="Token" field="consulToken">-->
+      <!--<f:textbox />-->
+    <!--</f:entry>-->
+  <!--</f:section>-->
+
+</j:jelly>

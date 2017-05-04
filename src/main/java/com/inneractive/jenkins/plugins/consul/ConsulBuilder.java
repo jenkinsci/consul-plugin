@@ -1,7 +1,6 @@
 package com.inneractive.jenkins.plugins.consul;
 
-import com.ecwid.consul.ConsulException;
-import com.ecwid.consul.v1.ConsulClient;
+import com.inneractive.jenkins.plugins.consul.Util.ConsulUtil;
 import hudson.Extension;
 import hudson.Launcher;
 import hudson.Proc;
@@ -28,7 +27,6 @@ public class ConsulBuilder extends Builder {
     private String consulDatacenter;
     private String consulToken;
     private JSONObject overrideGlobalConsulConfigurations;
-    private ConsulInstallation consulInstallation;
     private Proc consulAgentProcess;
     private List<ConsulOperation> operationList;
     private ConsulGlobalConfigurations.DescriptorImpl globalConsulConfigurationsDescriptor;
@@ -66,20 +64,16 @@ public class ConsulBuilder extends Builder {
         return consulToken;
     }
 
-    public ConsulInstallation getConsulInstallation() {
-        return consulInstallation;
-    }
-
     private String getMasters() {
-        return (!consulMasters.isEmpty()) ? consulMasters : globalConsulConfigurationsDescriptor.getGlobalConsulMasters();
+        return globalConsulConfigurationsDescriptor.getConsulMasters(consulMasters);
     }
 
     private String getDatacenter() {
-        return (!consulDatacenter.isEmpty()) ? consulDatacenter : globalConsulConfigurationsDescriptor.getGlobalConsulDatacenter();
+        return globalConsulConfigurationsDescriptor.getConsulDatacenter(consulDatacenter);
     }
 
     private String getToken() {
-        return (!consulToken.isEmpty()) ? consulToken : globalConsulConfigurationsDescriptor.getGlobalConsulToken();
+        return globalConsulConfigurationsDescriptor.getConsulToken(consulToken);
     }
 
     public List<ConsulOperation> getOperationList() {
@@ -112,19 +106,10 @@ public class ConsulBuilder extends Builder {
 
     }
 
-    private ConsulInstallation getInstallation(AbstractBuild<?, ?> build, BuildListener listener) throws IOException, InterruptedException{
-        for (ConsulInstallation i : getDescriptor().getInstallations()){
-            if( installationName != null && installationName.equals(i.getName())){
-                return (ConsulInstallation)i.translate(build, listener);
-            }
-        }
-        return null;
-    }
-
     @Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
-        setExecutable(build, launcher, listener);
-        if (joinConsul(build, launcher, listener)) {
+        consulAgentProcess = ConsulUtil.joinConsul(build, launcher, listener,null, installationName, getConsulDatacenter(), getMasters(), getToken());
+        if ( consulAgentProcess != null) {
             for (ConsulOperation operation : operationList){
                 operation.perform(build, launcher, listener);
             }
@@ -132,50 +117,9 @@ public class ConsulBuilder extends Builder {
             listener.getLogger().println("Couldn't connect to consul network.");
             return false;
         }
-        killConsulAgent(build, launcher, listener);
-        return true;
-    }
-
-    private void setExecutable(AbstractBuild build, final Launcher launcher, final BuildListener listener) throws IOException, InterruptedException {
-        Node node = Computer.currentComputer().getNode();
-        if (node != null) {
-            ConsulInstallation ci = getInstallation(build, listener).forNode(node, listener);
-            consulInstallation = ci.forEnvironment(build.getEnvironment(listener));
-        } else {
-            LOGGER.warning("Couldn't get jenkins node");
-            consulInstallation = null;
-        }
-    }
-
-    private boolean joinConsul(AbstractBuild build, final Launcher launcher, final BuildListener listener) throws IOException, InterruptedException {
-        boolean success = false;
-        String consulHomePath = consulInstallation.getHome();
-        if (consulHomePath!= null && !consulHomePath.isEmpty()){
-            consulAgentProcess = launcher.launch().cmds(new CommandBuilder(consulInstallation, launcher).agent().withDatacenter(getDatacenter()).join(getMasters()).withToken(getToken()).withDatadir(consulHomePath).withAdvertise("127.0.0.1").getCmds()).envs(build.getEnvironment(listener)).stderr(listener.getLogger()).start();
-        } else {
-            listener.getLogger().println("Couldn't get consul home directory");
-            consulAgentProcess = null;
-        }
-        listener.getLogger().println("Waiting for agent to join...");
-        for(int i=0; i<10 ; i++){
-            try {
-                if(i!=0)
-                    listener.getLogger().println("Retry (" + i + ")");
-                new ConsulClient("localhost").getStatusLeader();
-                success = true;
-                break;
-            } catch (ConsulException e){
-                Thread.sleep(100);
-            }
-        }
-        return success;
-    }
-
-    private void killConsulAgent(AbstractBuild build, final Launcher launcher, final BuildListener listener) throws IOException, InterruptedException {
-        launcher.launch().cmds(new CommandBuilder(consulInstallation, launcher).leave().getCmds()).envs(build.getEnvironment(listener)).join();
-        if (consulAgentProcess.isAlive())
-            consulAgentProcess.kill();
+        ConsulUtil.killConsulAgent(build, launcher, listener, null, installationName, consulAgentProcess);
         consulAgentProcess = null;
+        return true;
     }
 
     @Extension
@@ -198,16 +142,6 @@ public class ConsulBuilder extends Builder {
             return super.configure(req, json);
         }
 
-        public ConsulInstallation[] getInstallations(){
-            Jenkins jenkinsInstance = Jenkins.getInstance();
-            if (jenkinsInstance != null){
-                return ((ConsulInstallation.DescriptorImpl) jenkinsInstance.getDescriptor(ConsulInstallation.class)).getInstallations();
-            } else{
-                LOGGER.warning("Couldn't get jenkins instance");
-            }
-            return null;
-        }
-
         public boolean isApplicable(Class<? extends AbstractProject> aClass) {
             return true;
         }
@@ -227,7 +161,7 @@ public class ConsulBuilder extends Builder {
                 globalConsulConfigurationsDescriptor = ((ConsulGlobalConfigurations.DescriptorImpl)jenkinsInstance.getDescriptor(ConsulGlobalConfigurations.class));
             else
                 LOGGER.warning("Couldn't get jenkins instance");
-            if (value.isEmpty() && globalConsulConfigurationsDescriptor.getGlobalConsulMasters().isEmpty())
+            if (globalConsulConfigurationsDescriptor.getConsulMasters(value).isEmpty())
                 return FormValidation.error("Masters list is a mandatory field here if not configured in global jenkins configurations as well.");
             return FormValidation.ok();
         }
@@ -238,7 +172,7 @@ public class ConsulBuilder extends Builder {
                 globalConsulConfigurationsDescriptor = ((ConsulGlobalConfigurations.DescriptorImpl)jenkinsInstance.getDescriptor(ConsulGlobalConfigurations.class));
             else
                 LOGGER.warning("Couldn't get jenkins instance");
-            if (value.isEmpty() && globalConsulConfigurationsDescriptor.getGlobalConsulDatacenter().isEmpty())
+            if (globalConsulConfigurationsDescriptor.getConsulDatacenter(value).isEmpty())
                 return FormValidation.error("Datacenter is a mandatory field here if not configured in global jenkins configurations as well.");
             return FormValidation.ok();
         }

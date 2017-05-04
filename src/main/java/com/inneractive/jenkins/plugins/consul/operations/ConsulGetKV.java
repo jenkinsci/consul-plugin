@@ -10,6 +10,8 @@ import hudson.Extension;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
+import hudson.model.Run;
+import hudson.model.TaskListener;
 import hudson.util.FormValidation;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
@@ -33,10 +35,12 @@ public class ConsulGetKV extends ConsulOperation {
     }
 
     @Override
-    public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) {
+    public boolean perform(Run build, Launcher launcher, TaskListener listener) {
         Response<GetValue> kvResponse = new ConsulClient("localhost").getKVValue(valuePath);
         if (kvResponse.getValue() != null){
-            build.addAction(new VariableInjectionAction(environmentVariableName, kvResponse.getValue().getDecodedValue()));
+            String consulResponse = kvResponse.getValue().getDecodedValue();
+            response.addProperty(valuePath , consulResponse);
+            build.addAction(new VariableInjectionAction(environmentVariableName, consulResponse));
         }
         return true;
     }
@@ -59,5 +63,10 @@ public class ConsulGetKV extends ConsulOperation {
                 return FormValidation.error("Environment variable name is a mandatory field");
             return FormValidation.ok();
         }
+    }
+
+    @Override
+    public String getOperationName() {
+        return "ServiceDiscovery " + valuePath;
     }
 }

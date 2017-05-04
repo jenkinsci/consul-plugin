@@ -1,5 +1,6 @@
-package com.inneractive.jenkins.plugins.consul;
+package com.inneractive.jenkins.plugins.consul.Util;
 
+import com.inneractive.jenkins.plugins.consul.ConsulInstallation;
 import hudson.Launcher;
 
 import java.io.IOException;

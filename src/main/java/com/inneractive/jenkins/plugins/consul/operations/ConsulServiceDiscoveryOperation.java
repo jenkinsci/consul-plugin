@@ -10,6 +10,8 @@ import hudson.Extension;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
+import hudson.model.Run;
+import hudson.model.TaskListener;
 import hudson.util.FormValidation;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
@@ -58,8 +60,8 @@ public class ConsulServiceDiscoveryOperation extends ConsulOperation{
 
 
     @Override
-    public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) {
-        ArrayList<String> response = new ArrayList<>();
+    public boolean perform(Run build, Launcher launcher, TaskListener listener) {
+        ArrayList<String> consulResponse = new ArrayList<>();
         List<HealthService> servicesList;
         switch (healthStatus){
             case "Healthy":
@@ -97,14 +99,20 @@ public class ConsulServiceDiscoveryOperation extends ConsulOperation{
             if (addPort){
                 nodeDetails += ":" + node.getService().getPort();
             }
-            response.add(nodeDetails);
+            consulResponse.add(nodeDetails);
         }
         if(environmentVariableName != null && !environmentVariableName.isEmpty()) {
-            build.addAction(new VariableInjectionAction(environmentVariableName, response.toString()));
+            build.addAction(new VariableInjectionAction(environmentVariableName, consulResponse.toString()));
         } else{
-            build.addAction(new VariableInjectionAction(serviceName, response.toString()));
+            build.addAction(new VariableInjectionAction(serviceName, consulResponse.toString()));
         }
+        response.addProperty(serviceName, consulResponse.toString());
         return true;
+    }
+
+    @Override
+    public String getOperationName() {
+        return "ServiceDiscovery " + serviceName;
     }
 
     @Extension(optional = true)

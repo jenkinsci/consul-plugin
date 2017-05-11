@@ -27,7 +27,6 @@ public class ConsulBuilder extends Builder {
     private String consulDatacenter;
     private String consulToken;
     private JSONObject overrideGlobalConsulConfigurations;
-    private Proc consulAgentProcess;
     private List<ConsulOperation> operationList;
     private ConsulGlobalConfigurations.DescriptorImpl globalConsulConfigurationsDescriptor;
 
@@ -46,10 +45,6 @@ public class ConsulBuilder extends Builder {
         Jenkins jenkinsInstance= Jenkins.getInstance();
         if (jenkinsInstance != null)
             globalConsulConfigurationsDescriptor = ((ConsulGlobalConfigurations.DescriptorImpl)jenkinsInstance.getDescriptor(ConsulGlobalConfigurations.class));
-    }
-
-    public JSONObject getOverrideGlobalConsulConfigurations() {
-        return overrideGlobalConsulConfigurations;
     }
 
     public String getConsulMasters() {
@@ -90,6 +85,10 @@ public class ConsulBuilder extends Builder {
         this.operationList = operationList;
     }
 
+    public JSONObject getOverrideGlobalConsulConfigurations() {
+        return overrideGlobalConsulConfigurations;
+    }
+
     @DataBoundSetter
     public void setOverrideGlobalConsulConfigurations(JSONObject overrideGlobalConsulConfigurations) {
         consulMasters = overrideGlobalConsulConfigurations.getString("consulMasters").replaceAll(" ", "");
@@ -113,7 +112,7 @@ public class ConsulBuilder extends Builder {
 
     @Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
-        consulAgentProcess = ConsulUtil.joinConsul(build, launcher, listener,null, installationName, getDatacenter(), getMasters(), getToken());
+        Proc consulAgentProcess = ConsulUtil.joinConsul(build, launcher, listener, null, installationName, getDatacenter(), getMasters(), getToken());
         if ( consulAgentProcess != null) {
             for (ConsulOperation operation : operationList){
                 operation.perform(build, launcher, listener);

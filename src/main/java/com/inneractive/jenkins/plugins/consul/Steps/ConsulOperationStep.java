@@ -1,9 +1,9 @@
 package com.inneractive.jenkins.plugins.consul.Steps;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.gson.JsonObject;
 import com.inneractive.jenkins.plugins.consul.*;
 import com.inneractive.jenkins.plugins.consul.Util.ConsulUtil;
+import com.inneractive.jenkins.plugins.consul.operations.ConsulServiceDiscoveryOperation;
 import hudson.*;
 import hudson.model.*;
 import jenkins.model.Jenkins;
@@ -17,7 +17,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public class ConsulServiceDiscoveryStep extends Step{
+public class ConsulOperationStep extends Step{
 
     private String installationName;
     private String consulMasters;
@@ -25,12 +25,11 @@ public class ConsulServiceDiscoveryStep extends Step{
     private String consulToken;
     private JSONObject overrideGlobalConsulConfigurations;
 //    @Todo - fix installations in jelly file from util instead from a descriptor.
-    private ConsulInstallation consulInstallation;
     private List<ConsulOperation> operationList;
     private ConsulGlobalConfigurations.DescriptorImpl globalConsulConfigurationsDescriptor;
 
     @DataBoundConstructor
-    public ConsulServiceDiscoveryStep(String installationName) {
+    public ConsulOperationStep(String installationName) {
         this.installationName = installationName;
         operationList = Collections.emptyList();
 
@@ -72,10 +71,6 @@ public class ConsulServiceDiscoveryStep extends Step{
         return consulToken;
     }
 
-    public ConsulInstallation getConsulInstallation() {
-        return consulInstallation;
-    }
-
     private String getMasters() {
         return globalConsulConfigurationsDescriptor.getConsulMasters(consulMasters);
     }
@@ -97,16 +92,16 @@ public class ConsulServiceDiscoveryStep extends Step{
         return new Execution(this, stepContext);
     }
 
-    private static class Execution extends SynchronousStepExecution<JsonObject> {
+    private static class Execution extends SynchronousStepExecution<String> {
         private Run run;
         private TaskListener taskListener;
         private FilePath filePath;
         private EnvVars envVars;
         private Launcher launcher;
-        ConsulServiceDiscoveryStep step;
+        ConsulOperationStep step;
         Proc consulAgentProcess;
 
-        protected Execution(final ConsulServiceDiscoveryStep step, final @Nonnull StepContext context) throws IOException, InterruptedException {
+        protected Execution(final ConsulOperationStep step, final @Nonnull StepContext context) throws IOException, InterruptedException {
             super(context);
             run = context.get(Run.class);
             taskListener = context.get(TaskListener.class);
@@ -117,22 +112,25 @@ public class ConsulServiceDiscoveryStep extends Step{
         }
 
         @Override
-        protected JsonObject run() throws Exception {
-            JsonObject response = new JsonObject();
+        protected String run() throws Exception {
+            JSONObject jsonObject= new JSONObject();
             consulAgentProcess = ConsulUtil.joinConsul(run, launcher, taskListener, filePath, step.installationName, step.globalConsulConfigurationsDescriptor.getConsulDatacenter(step.getConsulDatacenter()), step.globalConsulConfigurationsDescriptor.getConsulMasters(step.getMasters()), step.globalConsulConfigurationsDescriptor.getConsulToken(step.getToken()));
             if ( consulAgentProcess != null) {
                 for (ConsulOperation operation : step.operationList){
                     operation.perform(run, launcher, taskListener);
-                    response.add(operation.getOperationName(), operation.getResponse());
+                    if (jsonObject.has(operation.getOperationName())){
+                        jsonObject.getJSONObject(operation.getOperationName()).put(operation.getVariableName(), operation.getResponse().get(((ConsulServiceDiscoveryOperation) operation).getServiceName()));
+                    } else {
+                        jsonObject.put(operation.getOperationName(), operation.getResponse());
+                    }
                 }
             } else{
                 taskListener.getLogger().println("Couldn't connect to consul network.");
-                return new JsonObject();
+                return "";
             }
             ConsulUtil.killConsulAgent(run, launcher, taskListener, filePath, step.installationName, consulAgentProcess);
             consulAgentProcess = null;
-            // @Todo fix json response
-            return response;
+            return jsonObject.toString();
         }
 
     }
@@ -157,6 +155,10 @@ public class ConsulServiceDiscoveryStep extends Step{
         @Override
         public String getDisplayName() {
             return "ConsulStep";
+        }
+
+        public ConsulInstallation[] getConsulInstallations(){
+            return ConsulUtil.getInstallations();
         }
     }
 }

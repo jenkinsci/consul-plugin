@@ -8,14 +8,12 @@ import com.inneractive.jenkins.plugins.consul.ConsulOperationDescriptor;
 import com.inneractive.jenkins.plugins.consul.VariableInjectionAction;
 import hudson.Extension;
 import hudson.Launcher;
-import hudson.model.AbstractBuild;
-import hudson.model.BuildListener;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.util.FormValidation;
+import net.sf.json.JSONArray;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -61,7 +59,7 @@ public class ConsulServiceDiscoveryOperation extends ConsulOperation{
 
     @Override
     public boolean perform(Run build, Launcher launcher, TaskListener listener) {
-        ArrayList<String> consulResponse = new ArrayList<>();
+        JSONArray consulResponse = new JSONArray();
         List<HealthService> servicesList;
         switch (healthStatus){
             case "Healthy":
@@ -103,16 +101,21 @@ public class ConsulServiceDiscoveryOperation extends ConsulOperation{
         }
         if(environmentVariableName != null && !environmentVariableName.isEmpty()) {
             build.addAction(new VariableInjectionAction(environmentVariableName, consulResponse.toString()));
-        } else{
+        } else {
             build.addAction(new VariableInjectionAction(serviceName, consulResponse.toString()));
         }
-        response.addProperty(serviceName, consulResponse.toString());
+        response.put(serviceName, consulResponse);
         return true;
     }
 
     @Override
     public String getOperationName() {
-        return "ServiceDiscovery " + serviceName;
+        return "ServiceDiscovery";
+    }
+
+    @Override
+    public String getVariableName() {
+        return serviceName;
     }
 
     @Extension(optional = true)

@@ -76,6 +76,11 @@ public class ConsulBuilder extends Builder {
         return globalConsulConfigurationsDescriptor.getConsulToken(consulToken);
     }
 
+    //@Todo jelly file should use ConsulUtil to get it...
+    public ConsulInstallation[] getConsulInstallations(){
+        return ConsulUtil.getInstallations();
+    }
+
     public List<ConsulOperation> getOperationList() {
         return operationList;
     }
@@ -108,7 +113,7 @@ public class ConsulBuilder extends Builder {
 
     @Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
-        consulAgentProcess = ConsulUtil.joinConsul(build, launcher, listener,null, installationName, getConsulDatacenter(), getMasters(), getToken());
+        consulAgentProcess = ConsulUtil.joinConsul(build, launcher, listener,null, installationName, getDatacenter(), getMasters(), getToken());
         if ( consulAgentProcess != null) {
             for (ConsulOperation operation : operationList){
                 operation.perform(build, launcher, listener);
@@ -175,6 +180,10 @@ public class ConsulBuilder extends Builder {
             if (globalConsulConfigurationsDescriptor.getConsulDatacenter(value).isEmpty())
                 return FormValidation.error("Datacenter is a mandatory field here if not configured in global jenkins configurations as well.");
             return FormValidation.ok();
+        }
+
+        public ConsulInstallation[] getConsulInstallations(){
+            return ConsulUtil.getInstallations();
         }
     }
 }

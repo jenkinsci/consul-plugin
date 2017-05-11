@@ -8,8 +8,6 @@ import com.inneractive.jenkins.plugins.consul.ConsulOperationDescriptor;
 import com.inneractive.jenkins.plugins.consul.VariableInjectionAction;
 import hudson.Extension;
 import hudson.Launcher;
-import hudson.model.AbstractBuild;
-import hudson.model.BuildListener;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.util.FormValidation;
@@ -39,10 +37,20 @@ public class ConsulGetKV extends ConsulOperation {
         Response<GetValue> kvResponse = new ConsulClient("localhost").getKVValue(valuePath);
         if (kvResponse.getValue() != null){
             String consulResponse = kvResponse.getValue().getDecodedValue();
-            response.addProperty(valuePath , consulResponse);
+            response.put(valuePath , consulResponse);
             build.addAction(new VariableInjectionAction(environmentVariableName, consulResponse));
         }
         return true;
+    }
+
+    @Override
+    public String getOperationName() {
+        return "KeyValueStore";
+    }
+
+    @Override
+    public String getVariableName() {
+        return environmentVariableName;
     }
 
     @Extension(optional = true)
@@ -63,10 +71,5 @@ public class ConsulGetKV extends ConsulOperation {
                 return FormValidation.error("Environment variable name is a mandatory field");
             return FormValidation.ok();
         }
-    }
-
-    @Override
-    public String getOperationName() {
-        return "ServiceDiscovery " + valuePath;
     }
 }

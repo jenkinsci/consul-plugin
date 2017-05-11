@@ -7,6 +7,7 @@ import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Proc;
 import hudson.model.*;
+import hudson.util.ListBoxModel;
 import jenkins.model.Jenkins;
 
 import java.io.IOException;
@@ -27,11 +28,18 @@ public abstract class ConsulUtil {
         }
     }
 
-    private static ConsulInstallation getInstallation(Run build, TaskListener listener, String installationName) throws IOException, InterruptedException{
-
+    public static ConsulInstallation[] getInstallations(){
         Jenkins jenkinsInstance = Jenkins.getInstance();
-        if (jenkinsInstance != null){
+        if (jenkinsInstance != null) {
             ConsulInstallation[] consulInstallations = ((ConsulInstallation.DescriptorImpl) jenkinsInstance.getDescriptor(ConsulInstallation.class)).getInstallations();
+            return consulInstallations;
+        }
+        return null;
+    }
+
+    private static ConsulInstallation getInstallation(Run build, TaskListener listener, String installationName) throws IOException, InterruptedException{
+        ConsulInstallation[] consulInstallations = getInstallations();
+        if (consulInstallations != null){
             for (ConsulInstallation i : consulInstallations){
                 if( installationName != null && installationName.equals(i.getName())){
                     return (ConsulInstallation)i;

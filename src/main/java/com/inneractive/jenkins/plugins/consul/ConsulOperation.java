@@ -1,15 +1,16 @@
 package com.inneractive.jenkins.plugins.consul;
 
-import com.google.gson.JsonObject;
 import hudson.ExtensionPoint;
 import hudson.Launcher;
 import hudson.model.*;
 import jenkins.model.Jenkins;
+import net.sf.json.JSONObject;
+
 import java.util.logging.Logger;
 
 public abstract class ConsulOperation implements ExtensionPoint, Describable<ConsulOperation> {
     private static Logger LOGGER = Logger.getLogger(ConsulOperation.class.getName());
-    protected JsonObject response = new JsonObject();
+    protected JSONObject response = new JSONObject();
 
     @Override
     public Descriptor<ConsulOperation> getDescriptor() {
@@ -26,7 +27,9 @@ public abstract class ConsulOperation implements ExtensionPoint, Describable<Con
 
     public abstract String getOperationName();
 
-    public JsonObject getResponse() {
+    public abstract String getVariableName();
+
+    public JSONObject getResponse() {
         return response;
     }
 }

@@ -15,11 +15,14 @@ import java.io.IOException;
 public abstract class ConsulUtil {
 
     private static ConsulInstallation getConsulInstallation(Run build, final Launcher launcher, final TaskListener listener, FilePath filePath, String installationName) throws IOException, InterruptedException {
-        Node node;
-        if (filePath != null)
-            node = filePath.toComputer().getNode();
-        else
+        Node node = null;
+        if (filePath != null) {
+            Computer computer = filePath.toComputer();
+            if (computer != null)
+                node = computer.getNode();
+        } else {
             node = Computer.currentComputer().getNode();
+        }
         if (node != null) {
             ConsulInstallation ci = getInstallation(build, listener, installationName).forNode(node, listener);
             return  ci.forEnvironment(build.getEnvironment(listener));
@@ -31,8 +34,7 @@ public abstract class ConsulUtil {
     public static ConsulInstallation[] getInstallations(){
         Jenkins jenkinsInstance = Jenkins.getInstance();
         if (jenkinsInstance != null) {
-            ConsulInstallation[] consulInstallations = ((ConsulInstallation.DescriptorImpl) jenkinsInstance.getDescriptor(ConsulInstallation.class)).getInstallations();
-            return consulInstallations;
+            return ((ConsulInstallation.DescriptorImpl) jenkinsInstance.getDescriptor(ConsulInstallation.class)).getInstallations();
         }
         return null;
     }

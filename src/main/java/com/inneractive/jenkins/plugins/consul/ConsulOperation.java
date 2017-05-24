@@ -6,9 +6,10 @@ import hudson.model.*;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 
+import java.io.Serializable;
 import java.util.logging.Logger;
 
-public abstract class ConsulOperation implements ExtensionPoint, Describable<ConsulOperation> {
+public abstract class ConsulOperation implements ExtensionPoint, Describable<ConsulOperation>, Serializable{
     private static Logger LOGGER = Logger.getLogger(ConsulOperation.class.getName());
     protected JSONObject response = new JSONObject();
 

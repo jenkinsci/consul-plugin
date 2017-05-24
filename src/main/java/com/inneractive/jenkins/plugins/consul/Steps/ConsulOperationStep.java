@@ -3,51 +3,56 @@ package com.inneractive.jenkins.plugins.consul.Steps;
 import com.google.common.collect.ImmutableSet;
 import com.inneractive.jenkins.plugins.consul.*;
 import com.inneractive.jenkins.plugins.consul.Util.ConsulUtil;
+import com.inneractive.jenkins.plugins.consul.configurations.ConsulClusterConfiguration;
+import com.inneractive.jenkins.plugins.consul.configurations.ConsulGlobalConfigurations;
 import com.inneractive.jenkins.plugins.consul.operations.ConsulServiceDiscoveryOperation;
 import hudson.*;
 import hudson.model.*;
+import hudson.util.FormValidation;
+import hudson.util.ListBoxModel;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.jenkinsci.plugins.workflow.steps.*;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
+import org.kohsuke.stapler.QueryParameter;
 import javax.annotation.Nonnull;
+import javax.servlet.ServletException;
 import java.io.IOException;
-import java.util.Collections;
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Logger;
 
-public class ConsulOperationStep extends Step{
-
+public class ConsulOperationStep extends Step implements Serializable {
+    private static Logger LOGGER = Logger.getLogger(ConsulOperationStep.class.getName());
     private String installationName;
-    private String consulMasters;
-    private String consulDatacenter;
-    private String consulToken;
-    private JSONObject overrideGlobalConsulConfigurations;
-//    @Todo - fix installations in jelly file from util instead from a descriptor.
-    private List<ConsulOperation> operationList;
-    private ConsulGlobalConfigurations.DescriptorImpl globalConsulConfigurationsDescriptor;
+    private ArrayList<ConsulOperation> operationList;
+    private String consulSettingsProfileName;
+    private ConsulClusterConfiguration consulClusterConfigurationProfile;
 
     @DataBoundConstructor
-    public ConsulOperationStep(String installationName) {
+    public ConsulOperationStep(String installationName, String consulSettingsProfileName) {
         this.installationName = installationName;
-        operationList = Collections.emptyList();
+        operationList = new ArrayList<>();
+        this.consulSettingsProfileName = consulSettingsProfileName;
 
         Jenkins jenkinsInstance= Jenkins.getInstance();
-        if (jenkinsInstance != null)
-            globalConsulConfigurationsDescriptor = ((ConsulGlobalConfigurations.DescriptorImpl)jenkinsInstance.getDescriptor(ConsulGlobalConfigurations.class));
+        if (jenkinsInstance != null) {
+            ConsulGlobalConfigurations.DescriptorImpl globalConsulConfigurationsDescriptor = ((ConsulGlobalConfigurations.DescriptorImpl) jenkinsInstance.getDescriptor(ConsulGlobalConfigurations.class));
+            for(ConsulClusterConfiguration consulClusterConfiguration: globalConsulConfigurationsDescriptor.getConfigurationsList()){
+                if (consulClusterConfiguration.getProfileName().equals(consulSettingsProfileName)){
+                    consulClusterConfigurationProfile = consulClusterConfiguration;
+                }
+            }
+        } else {
+            LOGGER.warning("Couldn't get jenkins instance");
+        }
     }
 
     @DataBoundSetter
-    public void setOverrideGlobalConsulConfigurations(JSONObject overrideGlobalConsulConfigurations) {
-        consulMasters = overrideGlobalConsulConfigurations.getString("consulMasters").replaceAll(" ", "");
-        consulDatacenter = overrideGlobalConsulConfigurations.getString("consulDatacenter");
-        consulToken = overrideGlobalConsulConfigurations.getString("consulToken");
-        this.overrideGlobalConsulConfigurations = overrideGlobalConsulConfigurations;
-    }
-
-    @DataBoundSetter
-    public void setOperationList(List<ConsulOperation> operationList) {
+    public void setOperationList(ArrayList<ConsulOperation> operationList) {
         this.operationList = operationList;
     }
 
@@ -55,36 +60,12 @@ public class ConsulOperationStep extends Step{
         return installationName;
     }
 
-    public JSONObject getOverrideGlobalConsulConfigurations() {
-        return overrideGlobalConsulConfigurations;
-    }
-
-    public String getConsulMasters() {
-        return consulMasters;
-    }
-
-    public String getConsulDatacenter() {
-        return consulDatacenter;
-    }
-
-    public String getConsulToken() {
-        return consulToken;
-    }
-
-    private String getMasters() {
-        return globalConsulConfigurationsDescriptor.getConsulMasters(consulMasters);
-    }
-
-    private String getDatacenter() {
-        return globalConsulConfigurationsDescriptor.getConsulDatacenter(consulDatacenter);
-    }
-
-    private String getToken() {
-        return globalConsulConfigurationsDescriptor.getConsulToken(consulToken);
-    }
-
-    public List<ConsulOperation> getOperationList() {
+    public ArrayList<ConsulOperation> getOperationList() {
         return operationList;
+    }
+
+    public String getConsulSettingsProfileName() {
+        return consulSettingsProfileName;
     }
 
     @Override
@@ -114,7 +95,7 @@ public class ConsulOperationStep extends Step{
         @Override
         protected String run() throws Exception {
             JSONObject jsonObject= new JSONObject();
-            consulAgentProcess = ConsulUtil.joinConsul(run, launcher, taskListener, filePath, step.installationName, step.globalConsulConfigurationsDescriptor.getConsulDatacenter(step.getConsulDatacenter()), step.globalConsulConfigurationsDescriptor.getConsulMasters(step.getMasters()), step.globalConsulConfigurationsDescriptor.getConsulToken(step.getToken()));
+            consulAgentProcess = ConsulUtil.joinConsul(run, launcher, taskListener, filePath, step.installationName, step.consulClusterConfigurationProfile.getDatacenter(), step.consulClusterConfigurationProfile.getMastersList(), step.consulClusterConfigurationProfile.getToken());
             if ( consulAgentProcess != null) {
                 for (ConsulOperation operation : step.operationList){
                     operation.perform(run, launcher, taskListener);
@@ -159,6 +140,35 @@ public class ConsulOperationStep extends Step{
 
         public ConsulInstallation[] getConsulInstallations(){
             return ConsulUtil.getInstallations();
+        }
+
+        public ListBoxModel doFillConsulSettingsProfileNameItems() {
+            ConsulGlobalConfigurations.DescriptorImpl globalConsulConfigurationsDescriptor;
+            Jenkins jenkinsInstance= Jenkins.getInstance();
+            if (jenkinsInstance != null) {
+                globalConsulConfigurationsDescriptor = ((ConsulGlobalConfigurations.DescriptorImpl) jenkinsInstance.getDescriptor(ConsulGlobalConfigurations.class));
+            } else {
+                LOGGER.warning("Couldn't get jenkins instance");
+                return null;
+            }
+
+            ListBoxModel items = new ListBoxModel();
+            for (ConsulClusterConfiguration consulClusterConfiguration: globalConsulConfigurationsDescriptor.getConfigurationsList()) {
+                items.add(consulClusterConfiguration.getProfileName());
+            }
+            return items;
+        }
+
+        public FormValidation doCheckConsulSettingsProfileName(@QueryParameter String value) throws IOException, ServletException {
+            if (value.isEmpty())
+                return FormValidation.error("You must configure a profile in jenkins global configurations before using the plugin.");
+            return FormValidation.ok();
+        }
+
+        public FormValidation doCheckInstallationName(@QueryParameter String value) throws IOException, ServletException {
+            if (value.isEmpty())
+                return FormValidation.error("You must configure at least one consul installation in global jenkins tools configurations.");
+            return FormValidation.ok();
         }
     }
 }

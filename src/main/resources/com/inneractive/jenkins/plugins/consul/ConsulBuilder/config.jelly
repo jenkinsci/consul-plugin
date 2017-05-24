@@ -8,24 +8,13 @@
     </select>
   </f:entry>
 
+  <f:entry field="consulSettingsProfileName" title="Settings profile">
+    <f:select />
+  </f:entry>
+
   <f:entry title="Consul operations" field="operationList">
     <f:hetero-list name="operationList" hasHeader="true"
                    descriptors="${descriptor.getOperations()}" items="${instance.operationList}"
                     />
   </f:entry>
-
-  <f:section title="Override global consul settings" name="overrideGlobalConsulConfigurations">
-    <f:entry title="Consul masters list" field="consulMasters">
-      <f:textbox />
-    </f:entry>
-
-    <f:entry title="Datacenter" field="consulDatacenter">
-      <f:textbox/>
-    </f:entry>
-
-    <f:entry title="Token" field="consulToken">
-      <f:textbox />
-    </f:entry>
-  </f:section>
-
 </j:jelly>

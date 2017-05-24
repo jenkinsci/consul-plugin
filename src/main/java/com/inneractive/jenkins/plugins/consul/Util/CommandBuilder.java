@@ -24,7 +24,7 @@ public class CommandBuilder {
         if (!consulMasters.isEmpty()) {
             for (String consulMaster : consulMasters.trim().split(",")) {
                 cmds.add("-join");
-                cmds.add(consulMaster);
+                cmds.add(consulMaster.trim());
             }
         }
         return this;

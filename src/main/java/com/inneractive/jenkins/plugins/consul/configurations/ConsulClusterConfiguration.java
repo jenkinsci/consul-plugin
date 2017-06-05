@@ -9,7 +9,6 @@ import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
-
 import javax.servlet.ServletException;
 import java.io.IOException;
 import java.io.Serializable;

@@ -1,6 +1,5 @@
 package com.inneractive.jenkins.plugins.consul;
 
-import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.*;
 import hudson.model.EnvironmentSpecific;
 import hudson.model.Node;
@@ -13,7 +12,6 @@ import hudson.tools.ToolInstaller;
 import hudson.tools.ToolProperty;
 import org.jenkinsci.remoting.RoleChecker;
 import org.kohsuke.stapler.DataBoundConstructor;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -37,11 +35,11 @@ public class ConsulInstallation extends ToolInstallation implements EnvironmentS
     }
 
     @Override
-    public ConsulInstallation forNode(@NonNull Node node, TaskListener taskListener) throws IOException, InterruptedException {
+    public ConsulInstallation forNode(Node node, TaskListener taskListener) throws IOException, InterruptedException {
         return new ConsulInstallation(getName(), translateFor(node, taskListener), getProperties().toList());
     }
 
-    protected String getExecutableFilename() {
+    private String getExecutableFilename() {
         return Functions.isWindows() ? WINDOWS_EXECUTABLE : UNIX_EXECUTABLE;
     }
 

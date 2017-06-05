@@ -67,7 +67,7 @@ public class ConsulServiceDiscoveryOperation extends ConsulOperation{
                 break;
             case "Unhealthy":
                 servicesList = new ConsulClient("localhost").getHealthServices(serviceName,false, QueryParams.DEFAULT).getValue();
-                List<HealthService> servicesListTmp = new ArrayList<HealthService>();
+                List<HealthService> servicesListTmp = new ArrayList<>();
                 List<HealthService> healthyServicesList = new ConsulClient("localhost").getHealthServices(serviceName, true, QueryParams.DEFAULT).getValue();
                 for ( HealthService service : servicesList)
                     servicesListTmp.add(service);

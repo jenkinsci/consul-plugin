@@ -8,16 +8,13 @@ import com.inneractive.jenkins.plugins.consul.configurations.ConsulGlobalConfigu
 import com.inneractive.jenkins.plugins.consul.operations.ConsulServiceDiscoveryOperation;
 import hudson.*;
 import hudson.model.*;
-import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.jenkinsci.plugins.workflow.steps.*;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
-import org.kohsuke.stapler.QueryParameter;
 import javax.annotation.Nonnull;
-import javax.servlet.ServletException;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -77,17 +74,15 @@ public class ConsulOperationStep extends Step implements Serializable {
         private Run run;
         private TaskListener taskListener;
         private FilePath filePath;
-        private EnvVars envVars;
         private Launcher launcher;
         ConsulOperationStep step;
         Proc consulAgentProcess;
 
-        protected Execution(final ConsulOperationStep step, final @Nonnull StepContext context) throws IOException, InterruptedException {
+        Execution(final ConsulOperationStep step, final @Nonnull StepContext context) throws IOException, InterruptedException {
             super(context);
             run = context.get(Run.class);
             taskListener = context.get(TaskListener.class);
             filePath = context.get(FilePath.class);
-            envVars = context.get(EnvVars.class);
             launcher = context.get(Launcher.class);
             this.step = step;
         }
@@ -157,18 +152,6 @@ public class ConsulOperationStep extends Step implements Serializable {
                 items.add(consulClusterConfiguration.getProfileName());
             }
             return items;
-        }
-
-        public FormValidation doCheckConsulSettingsProfileName(@QueryParameter String value) throws IOException, ServletException {
-            if (value.isEmpty())
-                return FormValidation.error("You must configure a profile in jenkins global configurations before using the plugin.");
-            return FormValidation.ok();
-        }
-
-        public FormValidation doCheckInstallationName(@QueryParameter String value) throws IOException, ServletException {
-            if (value.isEmpty())
-                return FormValidation.error("You must configure at least one consul installation in global jenkins tools configurations.");
-            return FormValidation.ok();
         }
     }
 }

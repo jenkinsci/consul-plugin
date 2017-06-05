@@ -16,7 +16,6 @@ import net.sf.json.JSONObject;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
-
 import javax.servlet.ServletException;
 import java.io.IOException;
 import java.util.Collections;
@@ -57,7 +56,6 @@ public class ConsulBuilder extends Builder {
         }
     }
 
-    //@Todo jelly file should use ConsulUtil to get it...
     public ConsulInstallation[] getConsulInstallations(){
         return ConsulUtil.getInstallations();
     }
@@ -94,7 +92,6 @@ public class ConsulBuilder extends Builder {
             return false;
         }
         ConsulUtil.killConsulAgent(build, launcher, listener, null, installationName, consulAgentProcess);
-        consulAgentProcess = null;
         return true;
     }
 
@@ -149,18 +146,6 @@ public class ConsulBuilder extends Builder {
                 items.add(consulClusterConfiguration.getProfileName());
             }
             return items;
-        }
-
-        public FormValidation doCheckConsulSettingsProfileName(@QueryParameter String value) throws IOException, ServletException {
-            if (value.isEmpty())
-                return FormValidation.error("You must configure a profile in jenkins global configurations before using the plugin.");
-            return FormValidation.ok();
-        }
-
-        public FormValidation doCheckInstallationName(@QueryParameter String value) throws IOException, ServletException {
-            if (value.isEmpty())
-                return FormValidation.error("You must configure at least one consul installation in global jenkins tools configurations.");
-            return FormValidation.ok();
         }
     }
 }

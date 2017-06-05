@@ -15,12 +15,12 @@ public class CommandBuilder {
         cmds.add(installation.getExecutablePath(launcher));
     }
 
-    public CommandBuilder agent(){
+    CommandBuilder agent(){
         cmds.add("agent");
         return this;
     }
 
-    public CommandBuilder join(String consulMasters){
+    CommandBuilder join(String consulMasters){
         if (!consulMasters.isEmpty()) {
             for (String consulMaster : consulMasters.trim().split(",")) {
                 cmds.add("-join");
@@ -30,12 +30,12 @@ public class CommandBuilder {
         return this;
     }
 
-    public CommandBuilder leave(){
+    CommandBuilder leave(){
         cmds.add("leave");
         return this;
     }
 
-    public CommandBuilder withToken(String token){
+    CommandBuilder withToken(String token){
         if (!token.isEmpty()) {
             cmds.add("-token");
             cmds.add(token);
@@ -43,7 +43,7 @@ public class CommandBuilder {
         return this;
     }
 
-    public CommandBuilder withDatacenter(String datacenter){
+    CommandBuilder withDatacenter(String datacenter){
         if (!datacenter.isEmpty()) {
             cmds.add("-datacenter");
             cmds.add(datacenter);
@@ -51,7 +51,7 @@ public class CommandBuilder {
         return this;
     }
 
-    public CommandBuilder withDatadir(String datadir){
+    CommandBuilder withDatadir(String datadir){
         if (!datadir.isEmpty()) {
             cmds.add("-data-dir");
             cmds.add(datadir);
@@ -59,7 +59,7 @@ public class CommandBuilder {
         return this;
     }
 
-    public CommandBuilder withAdvertise(String address){
+    CommandBuilder withAdvertise(String address){
         if (!address.isEmpty()) {
             cmds.add("-advertise");
             cmds.add(address);
@@ -67,7 +67,7 @@ public class CommandBuilder {
         return this;
     }
 
-    public CommandBuilder getKv(String path){
+    CommandBuilder getKv(String path){
         cmds.add("kv");
         cmds.add("Get");
         cmds.add(path);
@@ -76,7 +76,7 @@ public class CommandBuilder {
 
 
 
-    public ArrayList<String> getCmds() {
+    ArrayList<String> getCmds() {
         return cmds;
     }
 }

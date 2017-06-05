@@ -5,7 +5,6 @@ import hudson.Launcher;
 import hudson.model.*;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
-
 import java.io.Serializable;
 import java.util.logging.Logger;
 

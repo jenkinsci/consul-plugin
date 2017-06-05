@@ -7,24 +7,22 @@ import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Proc;
 import hudson.model.*;
-import hudson.util.ListBoxModel;
 import jenkins.model.Jenkins;
-
 import java.io.IOException;
 
 public abstract class ConsulUtil {
 
-    private static ConsulInstallation getConsulInstallation(Run build, final Launcher launcher, final TaskListener listener, FilePath filePath, String installationName) throws IOException, InterruptedException {
+    private static ConsulInstallation getConsulInstallation(Run build, final TaskListener listener, FilePath filePath, String installationName) throws IOException, InterruptedException {
         Node node = null;
-        if (filePath != null) {
+        if (filePath != null){
             Computer computer = filePath.toComputer();
             if (computer != null)
                 node = computer.getNode();
-        } else {
-            node = Computer.currentComputer().getNode();
         }
+        else
+            node = Computer.currentComputer().getNode();
         if (node != null) {
-            ConsulInstallation ci = getInstallation(build, listener, installationName).forNode(node, listener);
+            ConsulInstallation ci = getInstallation(installationName).forNode(node, listener);
             return  ci.forEnvironment(build.getEnvironment(listener));
         } else {
             return null;
@@ -39,12 +37,12 @@ public abstract class ConsulUtil {
         return null;
     }
 
-    private static ConsulInstallation getInstallation(Run build, TaskListener listener, String installationName) throws IOException, InterruptedException{
+    private static ConsulInstallation getInstallation(String installationName) throws IOException, InterruptedException{
         ConsulInstallation[] consulInstallations = getInstallations();
         if (consulInstallations != null){
             for (ConsulInstallation i : consulInstallations){
                 if( installationName != null && installationName.equals(i.getName())){
-                    return (ConsulInstallation)i;
+                    return i;
                 }
             }
         }
@@ -52,7 +50,7 @@ public abstract class ConsulUtil {
     }
 
     public static Proc joinConsul(Run build, final Launcher launcher, final TaskListener listener, FilePath filePath, String installationName, String dataCenter, String masters, String token) throws IOException, InterruptedException {
-        ConsulInstallation consulInstallation = getConsulInstallation(build, launcher, listener, filePath, installationName);
+        ConsulInstallation consulInstallation = getConsulInstallation(build, listener, filePath, installationName);
         Proc consulAgentProcess;
         boolean success = false;
         String consulHomePath = consulInstallation.getHome();
@@ -87,7 +85,7 @@ public abstract class ConsulUtil {
     }
 
     public static void killConsulAgent(Run build, final Launcher launcher, final TaskListener listener, FilePath filePath,  String installationName, Proc consulAgentProcess) throws IOException, InterruptedException {
-        ConsulInstallation consulInstallation = getConsulInstallation(build, launcher, listener, filePath, installationName);
+        ConsulInstallation consulInstallation = getConsulInstallation(build, listener, filePath, installationName);
         launcher.launch().cmds(new CommandBuilder(consulInstallation, launcher).leave().getCmds()).envs(build.getEnvironment(listener)).join();
         if (consulAgentProcess.isAlive())
             consulAgentProcess.kill();

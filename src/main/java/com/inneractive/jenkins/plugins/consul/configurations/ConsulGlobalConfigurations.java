@@ -2,18 +2,13 @@ package com.inneractive.jenkins.plugins.consul.configurations;
 
 import hudson.Extension;
 import hudson.model.Descriptor;
-import hudson.util.FormValidation;
 import jenkins.model.GlobalConfiguration;
 import jenkins.model.GlobalPluginConfiguration;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
-
-import javax.servlet.ServletException;
-import java.io.IOException;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -26,7 +21,7 @@ public class ConsulGlobalConfigurations extends GlobalPluginConfiguration {
     public static final class DescriptorImpl extends Descriptor<GlobalConfiguration> {
         private JSONObject configurationsList;
         public List<ConsulClusterConfiguration.DescriptorImpl> getConsulClusterConfigurationDescriptor() {
-            return Arrays.asList(new ConsulClusterConfiguration.DescriptorImpl());
+            return Collections.singletonList(new ConsulClusterConfiguration.DescriptorImpl());
         }
 
         public DescriptorImpl() {

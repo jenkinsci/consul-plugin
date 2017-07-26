@@ -94,6 +94,9 @@ public class ConsulOperationStep extends Step implements Serializable {
             if ( consulAgentProcess != null) {
                 for (ConsulOperation operation : step.operationList){
                     operation.perform(run, launcher, taskListener);
+                    if (operation.getOperationName().equals("SetKeyValueStore")){
+                        continue;
+                    }
                     if (jsonObject.has(operation.getOperationName())){
                         jsonObject.getJSONObject(operation.getOperationName()).put(operation.getVariableName(), operation.getResponse().get(((ConsulServiceDiscoveryOperation) operation).getServiceName()));
                     } else {

@@ -5,6 +5,8 @@ import hudson.Launcher;
 import hudson.model.*;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
+
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.logging.Logger;
 
@@ -23,7 +25,7 @@ public abstract class ConsulOperation implements ExtensionPoint, Describable<Con
         }
     }
 
-    public abstract boolean perform(Run build, Launcher launcher, TaskListener listener);
+    public abstract boolean perform(Run build, Launcher launcher, TaskListener listener) throws IOException, InterruptedException;
 
     public abstract String getOperationName();
 

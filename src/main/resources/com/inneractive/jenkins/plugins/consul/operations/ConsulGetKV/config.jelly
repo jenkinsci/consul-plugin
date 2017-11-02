@@ -3,7 +3,7 @@
     <f:entry title="K/V path" field="valuePath">
         <f:textbox />
     </f:entry>
-    <f:entry title="Environment variable name" field="value">
+    <f:entry title="Environment variable name" field="environmentVariableName">
         <f:textbox />
     </f:entry>
 </j:jelly>
